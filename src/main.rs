@@ -1,7 +1,6 @@
 use clap::Parser;
 use std::io;
 use std::net::Ipv4Addr;
-//use std::net::SocketAddr;
 use tokio::net::UdpSocket;
 
 #[derive(Parser)]
@@ -17,9 +16,6 @@ struct Cli {
     #[arg(long, default_value = "false")]
     client: bool,
 }
-
-const UDPPORT: u16 = 4200;
-const HTTPPORT: u16 = 8080;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -37,17 +33,18 @@ async fn main() -> anyhow::Result<()> {
     byte_vec.insert(0, 0x00);
     byte_vec.push(0xFF);
 
-    socket.send_to(&byte_vec, (args.server, UDPPORT)).await?;
+    socket.send_to(&byte_vec, (args.server, 4200)).await?;
     //-----------------------
 
     // Get peer IP
     let get_peer_info_url = format!(
         "http://{}:{}/api/wait/{}",
-        args.server, HTTPPORT, args.peer_name
+        args.server, 8080, args.peer_name
     );
     let params = [("timeout", args.timeout.to_string())];
 
     let client = reqwest::Client::new();
+    // Get peer IP
     let response = client.get(get_peer_info_url).query(&params).send().await?;
 
     if response.status().is_success() {
@@ -73,7 +70,6 @@ async fn main() -> anyhow::Result<()> {
     } else {
         println!("Error: {}", response.status());
     }
-    //------------
 
     Ok(())
 }
