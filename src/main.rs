@@ -59,14 +59,20 @@ async fn main() -> anyhow::Result<()> {
             loop {
                 let stdin = io::stdin();
                 let mut message = String::new();
-                println!("Enter your message to {}: ", &args.peer_name);
+                println!("Enter your message to {}: ", args.peer_name);
                 stdin.read_line(&mut message).unwrap();
 
-                match socket_send.send_to(message.as_bytes(), &peer_ip).await {
-                    Ok(_) => {}
-                    Err(e) => {
-                        println!("Failed to send: {}", e);
+                let message = message.trim();
+
+                if !message.is_empty() {
+                    match socket_send.send_to(message.as_bytes(), &peer_ip).await {
+                        Ok(_) => {}
+                        Err(e) => {
+                            println!("Failed to send: {}", e);
+                        }
                     }
+                } else {
+                    println!("Message is empty. Wrote something.");
                 }
             }
         });
@@ -79,6 +85,7 @@ async fn main() -> anyhow::Result<()> {
                     Ok((len, _peer_ip)) => {
                         let message = String::from_utf8_lossy(&buffer[..len]);
                         println!("Received from: {}", message);
+                        println!("Ctrl + D for write message.");
                     }
                     Err(e) => {
                         println!("Failed to receive: {}", e);
