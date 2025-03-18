@@ -31,7 +31,10 @@ async fn get_peer_ip(arg: &Cli, server: &Ipv4Addr) -> Result<String, reqwest::Er
     let get_peer_info_url = format!("http://{}:{}/api/wait/{}", server, 8080, arg.peer_name);
     let params = [("timeout", arg.timeout.to_string())];
 
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(arg.timeout.into()))
+        .build()?;
+
     let response = client.get(get_peer_info_url).query(&params).send().await?;
 
     if response.status().is_success() {
